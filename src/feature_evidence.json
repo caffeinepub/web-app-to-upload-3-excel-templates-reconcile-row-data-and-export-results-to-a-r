@@ -1,0 +1,128 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-web-ui-that-lets-a-user-1-download-the-three-excel-templates-2-upload-exactly-three-excel-files-sheet-a-sheet-b-sheet-c-and-3-see-clear-validation-errors-if-a-file-is-missing-not-an-xlsx-or-does-not-match-the-expected-template-structure-required-sheet-name-and-required-column-headers",
+      "featureTitle": "Create a web UI that lets a user (1) download the three Excel templates, (2) upload exactly three Excel files (Sheet A, Sheet B, Sheet C), and (3) see clear validation errors if a file is missing, not an .xlsx, or does not match the expected template structure (required sheet name and required column headers).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/fileValidation.ts",
+        "frontend/src/features/reconcile/templateSpec.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-excel-parsing-in-the-frontend-to-read-the-three-uploaded-xlsx-files-normalize-their-rows-into-structured-records-trim-whitespace-standardize-empty-cells-to-null-and-display-a-preview-first-n-rows-for-each-file-so-the-user-can-confirm-the-data-before-reconciliation",
+      "featureTitle": "Implement Excel parsing in the frontend to read the three uploaded .xlsx files, normalize their rows into structured records (trim whitespace, standardize empty cells to null), and display a preview (first N rows) for each file so the user can confirm the data before reconciliation.",
+      "files": [
+        "frontend/src/features/reconcile/PreviewTable.tsx",
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/excelParse.ts",
+        "frontend/src/features/reconcile/normalize.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-provide-a-reconciliation-configuration-panel-where-the-user-can-select-the-matching-key-column-s-used-to-align-rows-across-the-three-sheets-e-g-a-primary-key-like-invoice-no-id-and-select-which-columns-should-be-compared-across-files-for-mismatch-detection",
+      "featureTitle": "Provide a reconciliation configuration panel where the user can select the matching key column(s) used to align rows across the three sheets (e.g., a primary key like Invoice No / ID), and select which columns should be compared across files for mismatch detection.",
+      "files": [
+        "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/configValidation.ts",
+        "frontend/src/features/reconcile/types.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-results-view-in-the-web-ui-that-shows-1-reconciliation-summary-metrics-counts-by-status-and-2-a-filterable-sortable-results-table-the-results-must-be-presented-as-a-separate-in-app-tab-labeled-results",
+      "featureTitle": "Create a Results view in the web UI that shows (1) reconciliation summary metrics (counts by status) and (2) a filterable/sortable results table. The results must be presented as a separate in-app tab labeled “Results”.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/features/reconcile/ResultsTab.tsx",
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/reconcileLocal.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-export-feature-that-downloads-an-xlsx-file-containing-the-reconciled-output-in-a-separate-worksheet-named-results-including-the-summary-section-and-the-full-results-table",
+      "featureTitle": "Add an export feature that downloads an .xlsx file containing the reconciled output in a separate worksheet named “Results”, including the summary section and the full results table.",
+      "files": [
+        "frontend/src/features/reconcile/ResultsTab.tsx",
+        "frontend/src/features/reconcile/exportXlsx.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-coherent-consistent-visual-theme-across-the-app-colors-typography-spacing-and-components-suitable-for-a-data-reconciliation-tool-avoiding-blue-and-purple-as-primary-colors",
+      "featureTitle": "Apply a coherent, consistent visual theme across the app (colors, typography, spacing, and components) suitable for a data/reconciliation tool, avoiding blue-and-purple as primary colors.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Web app to upload three Excel files (using provided templates), reconcile row-level data across them, and output results into a separate results tab/sheet.",
+  "existing_features": [
+    {
+      "id": "feature-create-a-web-ui-that-lets-a-user-1-download-the-three-excel-templates-2-upload-exactly-three-excel-files-sheet-a-sheet-b-sheet-c-and-3-see-clear-validation-errors-if-a-file-is-missing-not-an-xlsx-or-does-not-match-the-expected-template-structure-required-sheet-name-and-required-column-headers",
+      "title": "Create a web UI that lets a user (1) download the three Excel templates, (2) upload exactly three Excel files (Sheet A, Sheet B, Sheet C), and (3) see clear validation errors if a file is missing, not an .xlsx, or does not match the expected template structure (required sheet name and required column headers).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-excel-parsing-in-the-frontend-to-read-the-three-uploaded-xlsx-files-normalize-their-rows-into-structured-records-trim-whitespace-standardize-empty-cells-to-null-and-display-a-preview-first-n-rows-for-each-file-so-the-user-can-confirm-the-data-before-reconciliation",
+      "title": "Implement Excel parsing in the frontend to read the three uploaded .xlsx files, normalize their rows into structured records (trim whitespace, standardize empty cells to null), and display a preview (first N rows) for each file so the user can confirm the data before reconciliation.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-a-reconciliation-configuration-panel-where-the-user-can-select-the-matching-key-column-s-used-to-align-rows-across-the-three-sheets-e-g-a-primary-key-like-invoice-no-id-and-select-which-columns-should-be-compared-across-files-for-mismatch-detection",
+      "title": "Provide a reconciliation configuration panel where the user can select the matching key column(s) used to align rows across the three sheets (e.g., a primary key like Invoice No / ID), and select which columns should be compared across files for mismatch detection.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-results-view-in-the-web-ui-that-shows-1-reconciliation-summary-metrics-counts-by-status-and-2-a-filterable-sortable-results-table-the-results-must-be-presented-as-a-separate-in-app-tab-labeled-results",
+      "title": "Create a Results view in the web UI that shows (1) reconciliation summary metrics (counts by status) and (2) a filterable/sortable results table. The results must be presented as a separate in-app tab labeled “Results”.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-feature-that-downloads-an-xlsx-file-containing-the-reconciled-output-in-a-separate-worksheet-named-results-including-the-summary-section-and-the-full-results-table",
+      "title": "Add an export feature that downloads an .xlsx file containing the reconciled output in a separate worksheet named “Results”, including the summary section and the full results table.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-coherent-consistent-visual-theme-across-the-app-colors-typography-spacing-and-components-suitable-for-a-data-reconciliation-tool-avoiding-blue-and-purple-as-primary-colors",
+      "title": "Apply a coherent, consistent visual theme across the app (colors, typography, spacing, and components) suitable for a data/reconciliation tool, avoiding blue-and-purple as primary colors.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Upload three template-based Excel files via web UI and validate template/format",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Reconcile row-level data across the three uploaded Excel sheets and produce a reconciled result",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Export/display reconciliation output in a separate results tab/sheet",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement backend reconciliation logic in the single Motoko actor: accept normalized row data for the three sheets plus the reconciliation configuration (key columns + compare columns), perform row-level reconciliation, and return a reconciled results dataset that classifies each key as Matched, Mismatch, Missing in A/B/C, or Duplicate key (within any sheet).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "gameProjectType": "none",
+  "projectName": "Web app to upload 3 Excel templates, reconcile row data, and export results to a Results tab",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

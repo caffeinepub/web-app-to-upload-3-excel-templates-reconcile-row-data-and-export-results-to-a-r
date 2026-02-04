@@ -1,0 +1,201 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Excel 3-template upload, reconcile, results tab, and XLSX export (frontend)",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Provide template downloads plus three distinct uploads (A/B/C) with strict .xlsx and template-structure validation and clear English errors.",
+      "acceptanceCriteria": [
+        "The page provides three distinct upload controls (one per required file) and prevents running reconciliation until all three are uploaded and validated.",
+        "Only .xlsx files are accepted; uploading other types shows an English error message.",
+        "Template validation checks that the uploaded workbook contains the expected sheet and required headers; failures are shown next to the relevant upload.",
+        "The UI provides links/buttons to download the three template files from the app."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/templates/SheetA-template.xlsx",
+          "operation": "create",
+          "description": "Add the downloadable Excel template file for Sheet A so the Upload tab can offer an in-app download link."
+        },
+        {
+          "path": "frontend/public/templates/SheetB-template.xlsx",
+          "operation": "create",
+          "description": "Add the downloadable Excel template file for Sheet B so the Upload tab can offer an in-app download link."
+        },
+        {
+          "path": "frontend/public/templates/SheetC-template.xlsx",
+          "operation": "create",
+          "description": "Add the downloadable Excel template file for Sheet C so the Upload tab can offer an in-app download link."
+        },
+        {
+          "path": "frontend/src/features/reconcile/templateSpec.ts",
+          "operation": "create",
+          "description": "Define the expected template structure for Sheet A/B/C (expected sheet name and required column headers) as constants used by validation."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "create",
+          "description": "Implement the Upload tab UI with three separate upload controls (Sheet A/B/C), template download links, and per-file validation error display. Use shadcn-ui components (e.g., Button, Input, Card/Alert) to ensure consistent UI; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/fileValidation.ts",
+          "operation": "create",
+          "description": "Add frontend validation helpers to enforce: exactly .xlsx file type, required sheet present, and required headers present; return English error messages scoped to the relevant upload control."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Wire the Upload tab into the app shell so users can access downloads/uploads immediately (and so reconciliation cannot run until validations pass). Use shadcn-ui Tabs for the required tabbed layout; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Parse each uploaded .xlsx in the browser, normalize rows, and show a responsive preview (first 20 rows) with loading indicators.",
+      "acceptanceCriteria": [
+        "After upload, each file shows a preview table of the first 20 rows (or fewer if the sheet is smaller).",
+        "Normalization is applied consistently (e.g., leading/trailing spaces removed; empty cells treated as empty/null).",
+        "If the file is very large, the UI remains responsive and shows a loading indicator while parsing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/excelParse.ts",
+          "operation": "create",
+          "description": "Implement browser-side XLSX parsing utilities (read workbook, pick expected sheet, extract header row + data rows, and normalize cell values by trimming whitespace and standardizing empty cells to null)."
+        },
+        {
+          "path": "frontend/src/features/reconcile/normalize.ts",
+          "operation": "create",
+          "description": "Add normalization helpers used across all three files (string trimming, empty handling, consistent row shaping by headers)."
+        },
+        {
+          "path": "frontend/src/features/reconcile/PreviewTable.tsx",
+          "operation": "create",
+          "description": "Create a reusable preview table component that renders the first 20 normalized rows for a dataset with a loading state. Use shadcn-ui Table (or equivalent table primitives) for consistent styling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "modify",
+          "description": "Extend the Upload tab to parse each uploaded workbook asynchronously, show a per-file loading indicator during parsing, and render PreviewTable with the first 20 rows once parsing completes. Use shadcn-ui components for loading/alerts; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add a reconciliation configuration panel to select key column(s) and compare columns, blocking reconciliation until configured.",
+      "acceptanceCriteria": [
+        "The app lists available column headers from each uploaded sheet and allows selecting at least one key column per sheet for matching.",
+        "The app allows selecting one or more columns to compare for mismatch detection.",
+        "The app blocks reconciliation and shows an English error if key columns are not configured."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/types.ts",
+          "operation": "create",
+          "description": "Define shared frontend types for parsed sheets, reconciliation config (key columns per sheet + compare columns), and reconciliation results used by Upload/Results tabs."
+        },
+        {
+          "path": "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
+          "operation": "create",
+          "description": "Implement the configuration panel that lists extracted headers for A/B/C and lets users pick key columns (at least one per sheet) plus one-or-more compare columns. Use shadcn-ui Select/Checkbox/Button components to keep UX consistent; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/configValidation.ts",
+          "operation": "create",
+          "description": "Add validation utilities for reconciliation config, producing clear English errors when required key selections are missing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "modify",
+          "description": "Wire ReconcileConfigPanel into the Upload tab so it is enabled after successful parsing, and block the 'Run Reconciliation' action until the config is valid (show English errors when invalid). Use shadcn-ui components for form layout and error messaging; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Implement an in-app “Results” tab showing summary counts and a filterable/sortable results table with row detail view.",
+      "acceptanceCriteria": [
+        "The UI includes a tabbed layout with at least an “Upload” tab and a “Results” tab.",
+        "After reconciliation completes, the Results tab shows summary counts (Matched, Mismatch, Missing in A/B/C, Duplicate).",
+        "The results table supports filtering by status and searching by key.",
+        "Clicking a result row shows a detail view of the A/B/C values for compared fields."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/reconcileLocal.ts",
+          "operation": "create",
+          "description": "Implement a frontend reconciliation function that takes the normalized datasets + config and produces a results dataset with statuses (Matched, Mismatch, Missing in A/B/C, Duplicate key) and summary counts. (This provides UI functionality until backend reconciliation is available.)"
+        },
+        {
+          "path": "frontend/src/features/reconcile/resultsUtils.ts",
+          "operation": "create",
+          "description": "Add helpers to compute summary metrics, apply status filters, apply key search, and perform stable sorting for the Results table."
+        },
+        {
+          "path": "frontend/src/features/reconcile/ResultsTab.tsx",
+          "operation": "create",
+          "description": "Create the Results tab view: summary metric cards, status filter controls, key search input, sortable results table, and a row detail dialog/panel showing A/B/C values for compared fields. Use shadcn-ui components (Tabs content, Table, Input, Select, Dialog/Drawer, Badge) for consistent interactions; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Implement the required tabbed layout with at least “Upload” and “Results” tabs, and wire shared state so running reconciliation in Upload populates Results. Use shadcn-ui Tabs to ensure accessible tab behavior; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "modify",
+          "description": "Add a 'Run Reconciliation' action that calls the frontend reconciliation function when all three files are validated and configuration is valid, then routes/switches focus to the Results tab state. Use shadcn-ui Button/Alert for UX consistency; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Export reconciliation output to a browser-generated .xlsx with a “Results” worksheet containing summary + full results table.",
+      "acceptanceCriteria": [
+        "A “Download Results (.xlsx)” button is available after reconciliation.",
+        "The downloaded workbook contains a worksheet named exactly “Results”.",
+        "The Results sheet includes the reconciliation output table with status and A/B/C values for compared columns.",
+        "Export works without server-side file generation (browser-generated download)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/exportXlsx.ts",
+          "operation": "create",
+          "description": "Implement browser-side XLSX export: create a workbook with a sheet named exactly “Results”, write a summary section, then write the full results table including status and A/B/C values for compared columns, and trigger a download."
+        },
+        {
+          "path": "frontend/src/features/reconcile/ResultsTab.tsx",
+          "operation": "modify",
+          "description": "Add a 'Download Results (.xlsx)' button that is enabled only after reconciliation results exist and invokes the XLSX export helper. Use shadcn-ui Button for consistent styling; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Apply a consistent data-tool theme across the app (no blue+purple primary pairing) with clear error/warning/success states.",
+      "acceptanceCriteria": [
+        "All screens (Upload, Results, dialogs/errors) share a consistent theme and component styling.",
+        "Primary/secondary colors are not a blue+purple pairing.",
+        "Error, warning, and success states are visually distinct and readable."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Create global theme styles (CSS variables and base typography/spacing) to support a coherent data-tool look while avoiding a blue+purple primary pairing; ensure readable success/warning/error states across the app."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Adjust Tailwind theme extensions (if needed) to align with the chosen non-blue+purple primary/secondary palette and ensure consistent component spacing/typography tokens used across Upload/Results views."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure the app shell (layout container, headings, spacing, and section framing) applies the global theme consistently across the Upload and Results tabs. Use shadcn-ui layout primitives where appropriate; verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}
