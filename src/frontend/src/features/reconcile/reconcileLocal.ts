@@ -57,75 +57,95 @@ export function reconcileData(
     // Check for duplicates
     const isDuplicate = rowsA.length > 1 || rowsB.length > 1 || rowsC.length > 1;
     
-    // Use first row from each sheet for comparison
-    const rowA = rowsA[0] || {};
-    const rowB = rowsB[0] || {};
-    const rowC = rowsC[0] || {};
+    // Find the maximum number of occurrences across all sheets for this key
+    const maxOccurrences = Math.max(rowsA.length, rowsB.length, rowsC.length);
     
-    // Extract values for compare columns
-    const valuesA: Record<string, string | null> = {};
-    const valuesB: Record<string, string | null> = {};
-    const valuesC: Record<string, string | null> = {};
-    
-    config.compareColumns.forEach(col => {
-      valuesA[col] = rowA[col] || null;
-      valuesB[col] = rowB[col] || null;
-      valuesC[col] = rowC[col] || null;
-    });
-    
-    // Determine status and mismatches
-    let status: ReconcileStatus;
-    const mismatches: string[] = [];
-    
-    if (isDuplicate) {
-      status = 'Duplicate';
-      summary.duplicate++;
-    } else if (!presentInA) {
-      status = 'Missing in A';
-      summary.missingInA++;
-    } else if (!presentInB) {
-      status = 'Missing in B';
-      summary.missingInB++;
-    } else if (!presentInC) {
-      status = 'Missing in C';
-      summary.missingInC++;
-    } else {
-      // All present, check for mismatches
-      let hasMismatch = false;
+    // Create one result entry per occurrence
+    for (let i = 0; i < maxOccurrences; i++) {
+      const rowA = rowsA[i] || {};
+      const rowB = rowsB[i] || {};
+      const rowC = rowsC[i] || {};
+      
+      // Determine if this specific occurrence is present in each sheet
+      const thisOccurrenceInA = i < rowsA.length;
+      const thisOccurrenceInB = i < rowsB.length;
+      const thisOccurrenceInC = i < rowsC.length;
+      
+      // Extract values for compare columns
+      const valuesA: Record<string, string | null> = {};
+      const valuesB: Record<string, string | null> = {};
+      const valuesC: Record<string, string | null> = {};
       
       config.compareColumns.forEach(col => {
-        const vA = valuesA[col];
-        const vB = valuesB[col];
-        const vC = valuesC[col];
-        
-        if (vA !== vB || vB !== vC || vA !== vC) {
-          hasMismatch = true;
-          mismatches.push(col);
-        }
+        valuesA[col] = rowA[col] || null;
+        valuesB[col] = rowB[col] || null;
+        valuesC[col] = rowC[col] || null;
       });
       
-      if (hasMismatch) {
-        status = 'Mismatch';
-        summary.mismatch++;
+      // Determine status and mismatches
+      let status: ReconcileStatus;
+      const mismatches: string[] = [];
+      
+      if (isDuplicate) {
+        status = 'Duplicate';
+      } else if (!thisOccurrenceInA) {
+        status = 'Missing in A';
+      } else if (!thisOccurrenceInB) {
+        status = 'Missing in B';
+      } else if (!thisOccurrenceInC) {
+        status = 'Missing in C';
       } else {
-        status = 'Matched';
+        // All present, check for mismatches
+        let hasMismatch = false;
+        
+        config.compareColumns.forEach(col => {
+          const vA = valuesA[col];
+          const vB = valuesB[col];
+          const vC = valuesC[col];
+          
+          if (vA !== vB || vB !== vC || vA !== vC) {
+            hasMismatch = true;
+            mismatches.push(col);
+          }
+        });
+        
+        if (hasMismatch) {
+          status = 'Mismatch';
+        } else {
+          status = 'Matched';
+        }
+      }
+      
+      // Update summary counts
+      summary.total++;
+      if (status === 'Duplicate') {
+        summary.duplicate++;
+      } else if (status === 'Missing in A') {
+        summary.missingInA++;
+      } else if (status === 'Missing in B') {
+        summary.missingInB++;
+      } else if (status === 'Missing in C') {
+        summary.missingInC++;
+      } else if (status === 'Mismatch') {
+        summary.mismatch++;
+      } else if (status === 'Matched') {
         summary.matched++;
       }
+      
+      results.push({
+        key,
+        status,
+        presentInA: thisOccurrenceInA,
+        presentInB: thisOccurrenceInB,
+        presentInC: thisOccurrenceInC,
+        valuesA,
+        valuesB,
+        valuesC,
+        mismatches,
+        occurrenceIndex: maxOccurrences > 1 ? i + 1 : undefined,
+        totalOccurrences: maxOccurrences > 1 ? maxOccurrences : undefined
+      });
     }
-    
-    summary.total++;
-    
-    results.push({
-      key,
-      status,
-      presentInA,
-      presentInB,
-      presentInC,
-      valuesA,
-      valuesB,
-      valuesC,
-      mismatches
-    });
   });
   
   return {

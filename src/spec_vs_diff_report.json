@@ -1,79 +1,14 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T05:47:26.679Z",
-  "summary": "Frontend implements upload/parse/validate/preview, config selection, local reconciliation, Results tab with filtering/search, and XLSX export to a \"Results\" worksheet. However, backend reconciliation (REQ-4) is not implemented; backend/main.mo contains unrelated record CRUD. Template download links/buttons are not evidenced in the diff summary. Several features were added that were not requested (Internet Identity integration, generic record store backend, external footer link).",
-  "missing_requirements": [
-    {
-      "id": "REQ-1",
-      "requirement": "UI provides links/buttons to download the three template files from the app.",
-      "reason": "The diff shows TEMPLATE_SPECS containing template file names, and UploadTab imports Download icon, but the provided (truncated) UploadTab content does not show any implemented download link/button or static template assets being served. No other file indicates template download implementation.",
-      "evidence": [
-        "frontend/src/features/reconcile/templateSpec.ts",
-        "frontend/src/features/reconcile/UploadTab.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Backend reconciliation logic: a single canister method that accepts the three normalized datasets + config, performs reconciliation (Matched/Mismatch/Missing/Duplicate), and returns results table + summary counts with meaningful English errors for invalid config.",
-      "reason": "backend/main.mo implements a Map-based addRecord/getRecord API unrelated to reconciliation. Reconciliation is implemented in the frontend via reconcileLocal.ts instead of a backend canister method.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/features/reconcile/reconcileLocal.ts"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Backend record storage API (addRecord/getRecord/containsKey/getAllRecords/getSize) with duplicate-key trapping and no reconciliation entrypoint.",
-      "reason": "BuildRequest requires a reconciliation method in the backend, not a generic record CRUD store.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Internet Identity authentication/provider hooks and actor creation utilities wired into the app shell.",
-      "reason": "BuildRequest explicitly states no third-party auth providers and does not request any authentication; the reconciliation tool is described as a single-user workflow.",
-      "evidence": [
-        "frontend/src/hooks/useInternetIdentity.ts (truncated)",
-        "frontend/src/hooks/useActor.ts",
-        "frontend/src/main.tsx"
-      ]
-    },
-    {
-      "description": "Footer attribution link to caffeine.ai and decorative heart character in UI.",
-      "reason": "Not requested by any requirement (REQ-1..REQ-7).",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.78,
+  "generatedAt": "2026-02-04T06:56:07.076Z",
+  "summary": "REQ-1 appears implemented by adding \"INVOICE NUMBER\" to the shared GST invoice required headers list used by all three template specs (A/B/C) in templateSpec.ts, which should affect both generated template first-row headers and required-header validation wherever TEMPLATE_SPECS.requiredHeaders is consumed.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.74,
   "changed_files": [
-    "all_files_summary.json",
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.css",
-    "frontend/index.html",
-    "frontend/src/App.tsx",
-    "frontend/src/features/reconcile/PreviewTable.tsx",
-    "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
-    "frontend/src/features/reconcile/ResultsTab.tsx",
-    "frontend/src/features/reconcile/UploadTab.tsx",
-    "frontend/src/features/reconcile/configValidation.ts",
-    "frontend/src/features/reconcile/excelParse.ts",
-    "frontend/src/features/reconcile/exportXlsx.ts",
-    "frontend/src/features/reconcile/fileValidation.ts",
-    "frontend/src/features/reconcile/normalize.ts",
-    "frontend/src/features/reconcile/reconcileLocal.ts",
     "frontend/src/features/reconcile/templateSpec.ts",
-    "frontend/src/features/reconcile/types.ts",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/index.css",
-    "frontend/src/lib/xlsx.ts",
-    "frontend/src/main.tsx",
-    "frontend/tailwind.config.js",
     "project_state.json"
   ]
 }

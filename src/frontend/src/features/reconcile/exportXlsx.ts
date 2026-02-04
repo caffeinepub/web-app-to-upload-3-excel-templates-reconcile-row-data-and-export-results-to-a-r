@@ -26,6 +26,7 @@ export async function exportToXlsx(results: ReconciliationResults) {
   // Add results table header
   const headerRow = [
     'Key',
+    'Occurrence',
     'Status',
     'Present in A',
     'Present in B',
@@ -42,8 +43,13 @@ export async function exportToXlsx(results: ReconciliationResults) {
 
   // Add results data
   results.rows.forEach(row => {
+    const occurrenceText = row.occurrenceIndex && row.totalOccurrences 
+      ? `${row.occurrenceIndex} of ${row.totalOccurrences}`
+      : '';
+    
     const dataRow: any[] = [
       row.key,
+      occurrenceText,
       row.status,
       row.presentInA ? 'Yes' : 'No',
       row.presentInB ? 'Yes' : 'No',

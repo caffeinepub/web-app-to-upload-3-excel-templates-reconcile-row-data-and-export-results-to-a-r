@@ -20,6 +20,16 @@ export function validateFileType(file: File): ValidationError | null {
   return null;
 }
 
+/**
+ * Find a sheet name in the workbook that matches the expected name (case-insensitive)
+ */
+export function findSheetName(sheetNames: string[], expectedName: string): string | null {
+  const found = sheetNames.find(
+    name => name.toLowerCase() === expectedName.toLowerCase()
+  );
+  return found || null;
+}
+
 export function validateTemplateStructure(
   sheetNames: string[],
   headers: string[],
@@ -27,15 +37,16 @@ export function validateTemplateStructure(
 ): ValidationError | null {
   const spec = TEMPLATE_SPECS[templateKey];
   
-  // Check if expected sheet exists
-  if (!sheetNames.includes(spec.sheetName)) {
+  // Check if expected sheet exists (case-insensitive)
+  const matchedSheetName = findSheetName(sheetNames, spec.sheetName);
+  if (!matchedSheetName) {
     return {
       field: 'sheetName',
       message: `Expected sheet "${spec.sheetName}" not found. Available sheets: ${sheetNames.join(', ')}`
     };
   }
   
-  // Check if all required headers are present
+  // Check if all required headers are present (case-insensitive)
   const missingHeaders = spec.requiredHeaders.filter(
     required => !headers.some(h => h?.toLowerCase() === required.toLowerCase())
   );

@@ -24,6 +24,8 @@ export interface ReconcileResultRow {
   valuesB: Record<string, string | null>;
   valuesC: Record<string, string | null>;
   mismatches: string[];
+  occurrenceIndex?: number;
+  totalOccurrences?: number;
 }
 
 export interface ReconciliationResults {

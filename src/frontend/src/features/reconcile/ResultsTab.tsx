@@ -176,6 +176,7 @@ export default function ResultsTab({ results }: ResultsTabProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Key</TableHead>
+                  <TableHead>Occurrence</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">In A</TableHead>
                   <TableHead className="text-center">In B</TableHead>
@@ -187,7 +188,7 @@ export default function ResultsTab({ results }: ResultsTabProps) {
               <TableBody>
                 {filteredRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No results found
                     </TableCell>
                   </TableRow>
@@ -195,6 +196,11 @@ export default function ResultsTab({ results }: ResultsTabProps) {
                   filteredRows.map((row, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono text-sm">{row.key}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {row.occurrenceIndex && row.totalOccurrences 
+                          ? `${row.occurrenceIndex} of ${row.totalOccurrences}`
+                          : '—'}
+                      </TableCell>
                       <TableCell>{getStatusBadge(row.status)}</TableCell>
                       <TableCell className="text-center">
                         {row.presentInA ? '✓' : '✗'}
@@ -243,6 +249,11 @@ export default function ResultsTab({ results }: ResultsTabProps) {
             <DialogTitle>Row Details</DialogTitle>
             <DialogDescription>
               Key: <span className="font-mono">{selectedRow?.key}</span>
+              {selectedRow?.occurrenceIndex && selectedRow?.totalOccurrences && (
+                <span className="ml-2">
+                  (Occurrence {selectedRow.occurrenceIndex} of {selectedRow.totalOccurrences})
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
 

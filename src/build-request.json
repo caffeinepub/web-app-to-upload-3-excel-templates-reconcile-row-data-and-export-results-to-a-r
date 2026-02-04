@@ -1,160 +1,39 @@
 {
   "kind": "build_request",
-  "title": "Web app to upload 3 Excel templates, reconcile row data, and export results to a Results tab",
+  "title": "Add Invoice Number column to GST Excel templates (retry build)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Create a web UI that lets a user (1) download the three Excel templates, (2) upload exactly three Excel files (Sheet A, Sheet B, Sheet C), and (3) see clear validation errors if a file is missing, not an .xlsx, or does not match the expected template structure (required sheet name and required column headers).",
+      "text": "Add a new required GST invoice column header named \"INVOICE NUMBER\" to the shared template header list so that all three generated Excel templates (Sheet A, Sheet B, Sheet C) include it in the first row and template validation requires it.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6",
+          "msg-10"
         ],
         "quotes": [
-          "I WILL UPLOAD  THREE EXCEL IN TEMBLATE AVIALNLE IN WEB"
+          "add invoice number laso in template",
+          "try"
         ]
       },
       "acceptanceCriteria": [
-        "The page provides three distinct upload controls (one per required file) and prevents running reconciliation until all three are uploaded and validated.",
-        "Only .xlsx files are accepted; uploading other types shows an English error message.",
-        "Template validation checks that the uploaded workbook contains the expected sheet and required headers; failures are shown next to the relevant upload.",
-        "The UI provides links/buttons to download the three template files from the app."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Implement Excel parsing in the frontend to read the three uploaded .xlsx files, normalize their rows into structured records (trim whitespace, standardize empty cells to null), and display a preview (first N rows) for each file so the user can confirm the data before reconciliation.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "UPLOAD  THREE EXCEL",
-          "RECONCILE THE DATA IN EACH RAW"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After upload, each file shows a preview table of the first 20 rows (or fewer if the sheet is smaller).",
-        "Normalization is applied consistently (e.g., leading/trailing spaces removed; empty cells treated as empty/null).",
-        "If the file is very large, the UI remains responsive and shows a loading indicator while parsing."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Provide a reconciliation configuration panel where the user can select the matching key column(s) used to align rows across the three sheets (e.g., a primary key like Invoice No / ID), and select which columns should be compared across files for mismatch detection.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "RECONCILE THE DATA IN EACH RAW"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The app lists available column headers from each uploaded sheet and allows selecting at least one key column per sheet for matching.",
-        "The app allows selecting one or more columns to compare for mismatch detection.",
-        "The app blocks reconciliation and shows an English error if key columns are not configured."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Implement backend reconciliation logic in the single Motoko actor: accept normalized row data for the three sheets plus the reconciliation configuration (key columns + compare columns), perform row-level reconciliation, and return a reconciled results dataset that classifies each key as Matched, Mismatch, Missing in A/B/C, or Duplicate key (within any sheet).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "RECONCILE THE DATA IN EACH RAW"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes a single canister method to run reconciliation given three datasets and config, returning a results table and summary counts.",
-        "Results include, per reconciled key: status, presence flags per sheet, and per compared column: value in A/B/C and whether it matches.",
-        "Duplicates (same key appearing multiple times in any sheet) are detected and surfaced in results.",
-        "Backend handles empty input safely and returns meaningful English errors for invalid config (e.g., missing key column)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Create a Results view in the web UI that shows (1) reconciliation summary metrics (counts by status) and (2) a filterable/sortable results table. The results must be presented as a separate in-app tab labeled “Results”.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "RESULT IN OTHER TAB"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The UI includes a tabbed layout with at least an “Upload” tab and a “Results” tab.",
-        "After reconciliation completes, the Results tab shows summary counts (Matched, Mismatch, Missing in A/B/C, Duplicate).",
-        "The results table supports filtering by status and searching by key.",
-        "Clicking a result row shows a detail view of the A/B/C values for compared fields."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Add an export feature that downloads an .xlsx file containing the reconciled output in a separate worksheet named “Results”, including the summary section and the full results table.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "RESULT IN OTHER TAB"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A “Download Results (.xlsx)” button is available after reconciliation.",
-        "The downloaded workbook contains a worksheet named exactly “Results”.",
-        "The Results sheet includes the reconciliation output table with status and A/B/C values for compared columns.",
-        "Export works without server-side file generation (browser-generated download)."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Apply a coherent, consistent visual theme across the app (colors, typography, spacing, and components) suitable for a data/reconciliation tool, avoiding blue-and-purple as primary colors.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "All screens (Upload, Results, dialogs/errors) share a consistent theme and component styling.",
-        "Primary/secondary colors are not a blue+purple pairing.",
-        "Error, warning, and success states are visually distinct and readable."
+        "Downloading each template (A/B/C) produces an .xlsx file whose first row contains an \"INVOICE NUMBER\" column header.",
+        "Uploading an .xlsx missing the \"INVOICE NUMBER\" header fails validation with a \"Missing required columns\" error that includes \"INVOICE NUMBER\".",
+        "Uploading an .xlsx that includes the \"INVOICE NUMBER\" header passes template header validation (all else equal)."
       ]
     }
   ],
   "constraints": [
-    "Use English for all user-facing UI text and error messages.",
-    "Backend must remain a single Motoko actor in backend/main.mo; only add migration.mo if persistent state schema upgrades are required.",
-    "Do not modify any frontend files under frontend/src/components/ui or other immutablePaths; compose them instead.",
-    "No external databases or third-party auth providers; use only the standard Internet Computer canister backend and frontend browser capabilities."
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts (immutable paths).",
+    "Keep the backend as a single Motoko actor; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Building a real-time collaboration or multi-user shared workspace.",
-    "Integrating external Excel/Google Sheets APIs or cloud storage providers.",
-    "Implementing complex accounting rules beyond row matching, mismatch detection, missing/duplicate detection, and structured comparison based on user-selected keys/columns."
+    "Do not change reconciliation logic beyond making the new column available via the existing key/compare column selection UX.",
+    "Do not introduce new authentication mechanisms beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

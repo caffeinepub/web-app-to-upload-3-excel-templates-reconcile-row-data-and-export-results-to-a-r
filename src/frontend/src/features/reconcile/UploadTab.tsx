@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Download, Upload, AlertCircle, CheckCircle2, Loader2, Play } from 'lucide-react';
 import { TEMPLATE_SPECS, TemplateKey } from './templateSpec';
-import { validateFileType, validateTemplateStructure, ValidationError } from './fileValidation';
+import { validateFileType, validateTemplateStructure, findSheetName, ValidationError } from './fileValidation';
 import { parseExcelFile, getSheetNames } from './excelParse';
-import { ParsedSheet, ReconciliationResults } from './types';
+import { ParsedSheet, ReconciliationResults, ReconcileConfig } from './types';
 import PreviewTable from './PreviewTable';
 import ReconcileConfigPanel from './ReconcileConfigPanel';
 import { validateReconcileConfig } from './configValidation';
 import { reconcileData } from './reconcileLocal';
+import { downloadTemplate } from '@/lib/generateTemplates';
 
 interface UploadTabProps {
   onReconciliationComplete: (results: ReconciliationResults) => void;
@@ -53,6 +54,13 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
   
   const [isReconciling, setIsReconciling] = useState(false);
   const [reconcileError, setReconcileError] = useState<string | null>(null);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState<TemplateKey | null>(null);
+
+  // Configuration state lifted from ReconcileConfigPanel
+  const [keyColumnsA, setKeyColumnsA] = useState<string[]>([]);
+  const [keyColumnsB, setKeyColumnsB] = useState<string[]>([]);
+  const [keyColumnsC, setKeyColumnsC] = useState<string[]>([]);
+  const [compareColumns, setCompareColumns] = useState<string[]>([]);
 
   const handleFileUpload = async (
     file: File,
@@ -82,6 +90,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
       // Get expected sheet name
       const spec = TEMPLATE_SPECS[templateKey];
       
+      // Find the actual sheet name (case-insensitive match)
+      const actualSheetName = findSheetName(sheetNames, spec.sheetName);
+      
       // Validate structure (sheet name only at this point)
       const structureError = validateTemplateStructure(sheetNames, [], templateKey);
       if (structureError && structureError.field === 'sheetName') {
@@ -89,9 +100,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
         return;
       }
 
-      // Parse the file
+      // Parse the file using the actual matched sheet name
       setState(prev => ({ ...prev, isValidating: false, isParsing: true }));
-      const parsed = await parseExcelFile(file, spec.sheetName);
+      const parsed = await parseExcelFile(file, actualSheetName!);
       
       // Validate headers
       const headerError = validateTemplateStructure(sheetNames, parsed.headers, templateKey);
@@ -121,9 +132,27 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
     }
   };
 
-  const handleReconcile = async (config: any) => {
+  const handleTemplateDownload = async (templateKey: TemplateKey) => {
+    setIsDownloadingTemplate(templateKey);
+    try {
+      await downloadTemplate(templateKey);
+    } catch (error) {
+      console.error('Failed to download template:', error);
+    } finally {
+      setIsDownloadingTemplate(null);
+    }
+  };
+
+  const handleReconcile = async () => {
     setReconcileError(null);
     
+    const config: ReconcileConfig = {
+      keyColumnsA,
+      keyColumnsB,
+      keyColumnsC,
+      compareColumns
+    };
+
     // Validate config
     const configError = validateReconcileConfig(config);
     if (configError) {
@@ -150,6 +179,23 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
   };
 
   const allFilesValid = fileA.parsed && fileB.parsed && fileC.parsed;
+  const configComplete = keyColumnsA.length > 0 && keyColumnsB.length > 0 && keyColumnsC.length > 0 && compareColumns.length > 0;
+  const canReconcile = allFilesValid && configComplete;
+
+  // Build prerequisite message
+  const getPrerequisiteMessage = (): string => {
+    const missing: string[] = [];
+    if (!fileA.parsed) missing.push('Sheet A (Accounts)');
+    if (!fileB.parsed) missing.push('Sheet B (Computation)');
+    if (!fileC.parsed) missing.push('Sheet C (Winman Data)');
+    if (allFilesValid && keyColumnsA.length === 0) missing.push('Sheet A key columns');
+    if (allFilesValid && keyColumnsB.length === 0) missing.push('Sheet B key columns');
+    if (allFilesValid && keyColumnsC.length === 0) missing.push('Sheet C key columns');
+    if (allFilesValid && compareColumns.length === 0) missing.push('compare columns');
+    
+    if (missing.length === 0) return '';
+    return `Missing: ${missing.join(', ')}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -166,12 +212,20 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
                 key={key}
                 variant="outline"
                 className="w-full"
-                asChild
+                onClick={() => handleTemplateDownload(key)}
+                disabled={isDownloadingTemplate === key}
               >
-                <a href={`/templates/${TEMPLATE_SPECS[key].fileName}`} download>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Sheet {key} Template
-                </a>
+                {isDownloadingTemplate === key ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download {TEMPLATE_SPECS[key].displayName} Template
+                  </>
+                )}
               </Button>
             ))}
           </div>
@@ -185,9 +239,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
           <CardDescription>Upload three Excel files matching the template structure</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Sheet A */}
+          {/* Sheet A (Accounts) */}
           <div className="space-y-2">
-            <Label htmlFor="fileA" className="text-base font-semibold">Sheet A</Label>
+            <Label htmlFor="fileA" className="text-base font-semibold">{TEMPLATE_SPECS.A.displayName}</Label>
             <div className="flex gap-2">
               <Input
                 id="fileA"
@@ -212,9 +266,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
             {fileA.parsed && <PreviewTable sheet={fileA.parsed} maxRows={20} />}
           </div>
 
-          {/* Sheet B */}
+          {/* Sheet B (Computation) */}
           <div className="space-y-2">
-            <Label htmlFor="fileB" className="text-base font-semibold">Sheet B</Label>
+            <Label htmlFor="fileB" className="text-base font-semibold">{TEMPLATE_SPECS.B.displayName}</Label>
             <div className="flex gap-2">
               <Input
                 id="fileB"
@@ -239,9 +293,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
             {fileB.parsed && <PreviewTable sheet={fileB.parsed} maxRows={20} />}
           </div>
 
-          {/* Sheet C */}
+          {/* Sheet C (Winman Data) */}
           <div className="space-y-2">
-            <Label htmlFor="fileC" className="text-base font-semibold">Sheet C</Label>
+            <Label htmlFor="fileC" className="text-base font-semibold">{TEMPLATE_SPECS.C.displayName}</Label>
             <div className="flex gap-2">
               <Input
                 id="fileC"
@@ -274,9 +328,52 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
           sheetA={fileA.parsed!}
           sheetB={fileB.parsed!}
           sheetC={fileC.parsed!}
-          onReconcile={handleReconcile}
-          isReconciling={isReconciling}
+          keyColumnsA={keyColumnsA}
+          keyColumnsB={keyColumnsB}
+          keyColumnsC={keyColumnsC}
+          compareColumns={compareColumns}
+          onKeyColumnsAChange={setKeyColumnsA}
+          onKeyColumnsBChange={setKeyColumnsB}
+          onKeyColumnsCChange={setKeyColumnsC}
+          onCompareColumnsChange={setCompareColumns}
         />
+      )}
+
+      {/* Reconcile Button - Always visible when files are uploaded */}
+      {allFilesValid && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <Button
+                onClick={handleReconcile}
+                disabled={!canReconcile || isReconciling}
+                size="lg"
+                className="w-full"
+              >
+                {isReconciling ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Reconciling...
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-5 w-5" />
+                    Run Reconciliation
+                  </>
+                )}
+              </Button>
+              
+              {!canReconcile && !isReconciling && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {getPrerequisiteMessage()}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {reconcileError && (

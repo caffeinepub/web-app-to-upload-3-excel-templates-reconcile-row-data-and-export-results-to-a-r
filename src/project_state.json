@@ -1,53 +1,80 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "Web app to upload three Excel files (using provided templates), reconcile row-level data across them, and output results into a separate results tab/sheet.",
+  "projectStateVersion": 23,
+  "summary": "ICP dapp with a Motoko backend and a React/Vite + shadcn/ui frontend implementing an Excel-based reconciliation workflow (upload, preview, configure, reconcile locally, and export results), with Internet Identity authentication plumbing, plus a Dockerized build-template/deployment harness for reproducible ICP CLI builds and exports.",
   "existing_features": [
     {
-      "id": "feature-create-a-web-ui-that-lets-a-user-1-download-the-three-excel-templates-2-upload-exactly-three-excel-files-sheet-a-sheet-b-sheet-c-and-3-see-clear-validation-errors-if-a-file-is-missing-not-an-xlsx-or-does-not-match-the-expected-template-structure-required-sheet-name-and-required-column-headers",
-      "title": "Create a web UI that lets a user (1) download the three Excel templates, (2) upload exactly three Excel files (Sheet A, Sheet B, Sheet C), and (3) see clear validation errors if a file is missing, not an .xlsx, or does not match the expected template structure (required sheet name and required column headers).",
+      "id": "IF-1",
+      "title": "ICP project scaffold (Motoko backend + React/Vite frontend)",
+      "synonyms": [
+        "initial app scaffold",
+        "core infrastructure"
+      ],
+      "description": "Repository includes build/deploy templates, an ICP Motoko backend canister, and a React/Vite TypeScript frontend wired for local/dev builds.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Internet Identity authentication integration (frontend hooks)",
+      "synonyms": [
+        "II login",
+        "Internet Identity"
+      ],
+      "description": "Frontend includes hooks/utilities to authenticate via Internet Identity and create an authenticated actor for backend calls.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Excel reconciliation workflow UI",
+      "synonyms": [
+        "reconcile feature",
+        "reconciliation UI"
+      ],
+      "description": "Frontend implements a reconciliation feature with Upload, Preview, Config, and Results tabs/components, including validation and normalization pipelines.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Local reconciliation engine and Excel import/export utilities",
+      "synonyms": [
+        "reconcileLocal",
+        "xlsx import/export"
+      ],
+      "description": "Implements Excel parsing, file/config validation, normalization, local reconciliation logic, and exporting results back to XLSX.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "UI component system (shadcn/ui) integrated",
+      "synonyms": [
+        "shadcn-ui"
+      ],
+      "description": "Includes a large set of shadcn/ui components and Tailwind configuration for building the app UI.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Dockerized build-template and deployment/export harness",
+      "synonyms": [
+        "build-template",
+        "reproducible builds",
+        "icp.yaml/deploy.sh",
+        "github export icp cli"
+      ],
+      "description": "Adds a build-template workspace (Dockerfile, icp.yaml, deploy.sh, package/pnpm workspace configs, and helper scripts like prune/resize images) to support reproducible builds and deployment/export workflows for the ICP dapp stack.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-required-gst-invoice-column-header-named-invoice-number-to-the-shared-template-header-list-so-that-all-three-generated-excel-templates-sheet-a-sheet-b-sheet-c-include-it-in-the-first-row-and-template-validation-requires-it",
+      "title": "Add a new required GST invoice column header named \"INVOICE NUMBER\" to the shared template header list so that all three generated Excel templates (Sheet A, Sheet B, Sheet C) include it in the first row and template validation requires it.",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-excel-parsing-in-the-frontend-to-read-the-three-uploaded-xlsx-files-normalize-their-rows-into-structured-records-trim-whitespace-standardize-empty-cells-to-null-and-display-a-preview-first-n-rows-for-each-file-so-the-user-can-confirm-the-data-before-reconciliation",
-      "title": "Implement Excel parsing in the frontend to read the three uploaded .xlsx files, normalize their rows into structured records (trim whitespace, standardize empty cells to null), and display a preview (first N rows) for each file so the user can confirm the data before reconciliation.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-provide-a-reconciliation-configuration-panel-where-the-user-can-select-the-matching-key-column-s-used-to-align-rows-across-the-three-sheets-e-g-a-primary-key-like-invoice-no-id-and-select-which-columns-should-be-compared-across-files-for-mismatch-detection",
-      "title": "Provide a reconciliation configuration panel where the user can select the matching key column(s) used to align rows across the three sheets (e.g., a primary key like Invoice No / ID), and select which columns should be compared across files for mismatch detection.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-results-view-in-the-web-ui-that-shows-1-reconciliation-summary-metrics-counts-by-status-and-2-a-filterable-sortable-results-table-the-results-must-be-presented-as-a-separate-in-app-tab-labeled-results",
-      "title": "Create a Results view in the web UI that shows (1) reconciliation summary metrics (counts by status) and (2) a filterable/sortable results table. The results must be presented as a separate in-app tab labeled “Results”.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-export-feature-that-downloads-an-xlsx-file-containing-the-reconciled-output-in-a-separate-worksheet-named-results-including-the-summary-section-and-the-full-results-table",
-      "title": "Add an export feature that downloads an .xlsx file containing the reconciled output in a separate worksheet named “Results”, including the summary section and the full results table.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-coherent-consistent-visual-theme-across-the-app-colors-typography-spacing-and-components-suitable-for-a-data-reconciliation-tool-avoiding-blue-and-purple-as-primary-colors",
-      "title": "Apply a coherent, consistent visual theme across the app (colors, typography, spacing, and components) suitable for a data/reconciliation tool, avoiding blue-and-purple as primary colors.",
-      "reqIds": [
-        "REQ-7"
       ],
       "version": 1
     }
@@ -55,36 +82,24 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Upload three template-based Excel files via web UI and validate template/format",
+      "summary": "Add Invoice Number column/field to the Excel template and include it in reconciliation",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Reconcile row-level data across the three uploaded Excel sheets and produce a reconciled result",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Export/display reconciliation output in a separate results tab/sheet",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Implement backend reconciliation logic in the single Motoko actor: accept normalized row data for the three sheets plus the reconciliation configuration (key columns + compare columns), perform row-level reconciliation, and return a reconciled results dataset that classifies each key as Matched, Mismatch, Missing in A/B/C, or Duplicate key (within any sheet).",
-      "reqIds": [
-        "REQ-4"
-      ],
       "status": "pending"
     }
   ],
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
-  "gameProjectType": "none",
-  "projectName": "Web app to upload 3 Excel templates, reconcile row data, and export results to a Results tab",
+  "architectural_notes": [
+    "Architecture: Internet Computer dapp with a Motoko backend canister and a React/Vite TypeScript frontend.",
+    "Frontend uses Tailwind + shadcn/ui component library; reconciliation feature is implemented primarily client-side (local processing) with XLSX import/export utilities.",
+    "Authentication uses Internet Identity; frontend creates an authenticated actor for backend interactions.",
+    "Build/deploy now includes a Dockerized build-template workspace (icp.yaml + deploy.sh and supporting scripts) to enable reproducible ICP CLI builds/exports alongside the main app source.",
+    "Build-template workspace now includes a full React/Vite + shadcn/ui frontend scaffold (components, Tailwind/PostCSS, Vite config) plus custom ESLint rules (e.g., requiring Internet Identity provider configuration and preventing BigInt usage in query keys) to enforce ICP/II-specific frontend constraints."
+  ],
+  "known_issues": [
+    "User reported being unable to open/download the Excel template and missing/disabled Reconcile button in the UI.",
+    "Build/deploy errored when attempting to add the Invoice Number column to the template (user requested retry)."
+  ],
+  "isFixRequest": true,
+  "projectName": "Add Invoice Number column to GST Excel templates (retry build)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
