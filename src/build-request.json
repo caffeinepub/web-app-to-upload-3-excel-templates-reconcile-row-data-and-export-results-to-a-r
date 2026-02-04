@@ -1,36 +1,88 @@
 {
   "kind": "build_request",
-  "title": "Add Invoice Number column to GST Excel templates (retry build)",
+  "title": "Remove key/value-based reconciliation and compare full rows across three sheets",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a new required GST invoice column header named \"INVOICE NUMBER\" to the shared template header list so that all three generated Excel templates (Sheet A, Sheet B, Sheet C) include it in the first row and template validation requires it.",
+      "text": "Remove the key-based (\"key column\" / key-value) reconciliation concept from the reconciliation workflow, and change reconciliation to compare each row as a whole item across all three sheets (Sheet A vs Sheet B vs Sheet C), flagging a mismatch when any column value differs for the same row position.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6",
-          "msg-10"
+          "msg-6"
         ],
         "quotes": [
-          "add invoice number laso in template",
-          "try"
+          "remove key value concept check the raw and its value matcing togother in three sheets"
         ]
       },
       "acceptanceCriteria": [
-        "Downloading each template (A/B/C) produces an .xlsx file whose first row contains an \"INVOICE NUMBER\" column header.",
-        "Uploading an .xlsx missing the \"INVOICE NUMBER\" header fails validation with a \"Missing required columns\" error that includes \"INVOICE NUMBER\".",
-        "Uploading an .xlsx that includes the \"INVOICE NUMBER\" header passes template header validation (all else equal)."
+        "Reconciliation no longer requires or uses a key column (e.g., no dependence on \"INVOICE NUMBER\" as a key for matching).",
+        "For each row index i, the app compares the row in Sheet A, Sheet B, and Sheet C together and marks the result as Matched or Mismatch based on full-row equality across the compared columns.",
+        "If one or more sheets are missing a row at index i (row count differs), the result clearly reports the row as missing in the relevant sheet(s)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the reconciliation configuration, types, and validation to remove keyColumnsA/keyColumnsB/keyColumnsC and any \"key\"-based configuration/validation, and instead define the compared columns set as the common headers across all three sheets (or the template-defined headers when available) for row-wise comparison.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "remove key value concept check the raw and its value matcing togother in three sheets"
+        ]
+      },
+      "acceptanceCriteria": [
+        "TypeScript types in the reconcile feature no longer require keyColumns* fields for reconciliation to run.",
+        "Config validation does not enforce \"INVOICE NUMBER\" as a key column and does not block reconciliation due to missing key column selections.",
+        "The list of columns used for row comparison is derived automatically and is consistent across the reconciliation engine, UI detail view, and XLSX export."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the UI to reflect row-wise reconciliation: remove/replace any user-facing text and controls that describe \"matching by key\" (including key column checkbox sections), and update results presentation to use a row identifier (e.g., row number/index) instead of a \"Key\" field while still showing per-sheet values and mismatched columns.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "remove key value concept check the raw and its value matcing togother in three sheets"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The configuration panel no longer shows key-column selection UI and no longer states that matching is done by \"INVOICE NUMBER\".",
+        "The results table and detail dialog no longer label the primary identifier as \"Key\" and instead display a row identifier (row number/index).",
+        "Search/filter UX remains functional (e.g., users can search by row identifier and/or by displayed values) and does not rely on a key string."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update XLSX export so the exported Results sheet reflects row-wise reconciliation (row identifier instead of key, per-sheet presence, mismatched columns, and per-column values for A/B/C for the compared columns).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "remove key value concept check the raw and its value matcing togother in three sheets"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exported XLSX includes a row identifier column (not a key column) and correctly lists row-wise statuses and mismatches.",
+        "Export values for each compared column are included for Sheet A, Sheet B, and Sheet C per result row."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts (immutable paths).",
-    "Keep the backend as a single Motoko actor; do not introduce additional backend services."
+    "Do not modify files under frontend/immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui).",
+    "Keep reconciliation as a local (frontend) engine; do not introduce new backend services or external databases."
   ],
   "nonGoals": [
-    "Do not change reconciliation logic beyond making the new column available via the existing key/compare column selection UX.",
-    "Do not introduce new authentication mechanisms beyond Internet Identity."
+    "Adding new authentication methods beyond Internet Identity.",
+    "Introducing real-time collaboration, WebSockets, or external data storage.",
+    "Changing the Excel template specifications unless required to support row-wise comparison."
   ],
   "imageRequirements": {
     "required": [],

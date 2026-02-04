@@ -1,21 +1,108 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add required INVOICE NUMBER header to GST Excel templates",
+  "title": "Row-wise reconciliation across three sheets (no key column)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add required \"INVOICE NUMBER\" to the shared GST template header list so all generated templates include it and uploads validate it as required.",
+      "summary": "Replace key-based reconciliation with row-index-based full-row comparison across Sheet A/B/C, including clear missing-row reporting when row counts differ.",
       "acceptanceCriteria": [
-        "Downloading each template (A/B/C) produces an .xlsx file whose first row contains an \"INVOICE NUMBER\" column header.",
-        "Uploading an .xlsx missing the \"INVOICE NUMBER\" header fails validation with a \"Missing required columns\" error that includes \"INVOICE NUMBER\".",
-        "Uploading an .xlsx that includes the \"INVOICE NUMBER\" header passes template header validation (all else equal)."
+        "Reconciliation no longer requires or uses a key column (e.g., no dependence on \"INVOICE NUMBER\" as a key for matching).",
+        "For each row index i, the app compares the row in Sheet A, Sheet B, and Sheet C together and marks the result as Matched or Mismatch based on full-row equality across the compared columns.",
+        "If one or more sheets are missing a row at index i (row count differs), the result clearly reports the row as missing in the relevant sheet(s)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/features/reconcile/reconcileLocal.ts",
+          "operation": "modify",
+          "description": "Rewrite the local reconciliation engine to iterate by row index (0..maxRowCount-1), compare full-row values across Sheet A/B/C for the derived compareColumns, compute mismatched columns when any value differs, and set status based on (a) any sheet missing the row at that index vs (b) full-row equality across present sheets."
+        },
+        {
+          "path": "frontend/src/features/reconcile/mismatch.ts",
+          "operation": "modify",
+          "description": "Update mismatch detection helpers to support row-index-based comparison using already-normalized per-column values (or raw row objects by index) without assuming any key-driven grouping."
+        },
+        {
+          "path": "frontend/src/features/reconcile/normalize.ts",
+          "operation": "modify",
+          "description": "Remove/stop using any key-building helpers (e.g., composite key generation) and keep only normalization utilities needed for row-wise cell comparisons."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove keyColumns* configuration and validation; derive compared columns automatically from common headers (or template headers when available) and keep it consistent across engine, UI, and export.",
+      "acceptanceCriteria": [
+        "TypeScript types in the reconcile feature no longer require keyColumns* fields for reconciliation to run.",
+        "Config validation does not enforce \"INVOICE NUMBER\" as a key column and does not block reconciliation due to missing key column selections.",
+        "The list of columns used for row comparison is derived automatically and is consistent across the reconciliation engine, UI detail view, and XLSX export."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/types.ts",
+          "operation": "modify",
+          "description": "Update TypeScript types to remove keyColumnsA/keyColumnsB/keyColumnsC from ReconcileConfig, replace ReconcileResultRow.key with a row identifier field (e.g., rowIndex/rowNumber), and adjust status/summary fields to reflect row-wise reconciliation and per-sheet missing-row reporting."
+        },
+        {
+          "path": "frontend/src/features/reconcile/configValidation.ts",
+          "operation": "modify",
+          "description": "Remove all key-column enforcement (including the fixed \"INVOICE NUMBER\" requirement) and validate only that a non-empty derived compareColumns list exists for row-wise comparison."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "modify",
+          "description": "Update reconciliation configuration flow to eliminate keyColumns* state and any key-based prerequisites; derive compareColumns automatically from common headers across all three parsed sheets (or template-defined headers when available) and pass this config into reconciliation. Use existing shadcn-ui components (Card, Alert, Button, Input, etc.) for the updated UI; verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/features/reconcile/templateSpec.ts",
           "operation": "modify",
-          "description": "Update the shared GST_INVOICE_HEADERS list to include a new required header string \"INVOICE NUMBER\" so TEMPLATE_SPECS A/B/C all inherit it for template generation and required-header validation."
+          "description": "Add/adjust a template-driven header list that can be used as the preferred basis for compareColumns (when all required headers exist), while still supporting fallback to common headers across Sheet A/B/C for non-template files."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update UI copy and controls to remove key-based concepts; present row-wise results using a row identifier, while keeping search/filter functional without relying on a key string.",
+      "acceptanceCriteria": [
+        "The configuration panel no longer shows key-column selection UI and no longer states that matching is done by \"INVOICE NUMBER\".",
+        "The results table and detail dialog no longer label the primary identifier as \"Key\" and instead display a row identifier (row number/index).",
+        "Search/filter UX remains functional (e.g., users can search by row identifier and/or by displayed values) and does not rely on a key string."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
+          "operation": "modify",
+          "description": "Remove the key-column selection UI and replace the panel content with row-wise reconciliation guidance plus a read-only display of the derived compared columns set (common headers or template-defined). Use shadcn-ui components (Card, Alert, Checkbox/Label if still needed for read-only display) for consistent layout; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/ResultsTab.tsx",
+          "operation": "modify",
+          "description": "Update results presentation to use a row identifier column (e.g., Row #) instead of Key; update detail dialog to show row identifier and maintain per-sheet values + mismatched columns. Update search to match on row identifier and also allow searching within displayed cell values (A/B/C) without relying on a key string. Use shadcn-ui components (Table, Dialog, Select, Input, Badge) for the updated UI; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/reconcile/UploadTab.tsx",
+          "operation": "modify",
+          "description": "Remove/replace any user-facing text that references matching by invoice/key, and update prerequisite logic so reconciliation can run once three sheets are parsed and compareColumns are derived. Use existing shadcn-ui components for alerts and step cards; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update XLSX export to reflect row-wise reconciliation with row identifier, per-sheet presence, mismatched columns, and per-column values for A/B/C.",
+      "acceptanceCriteria": [
+        "Exported XLSX includes a row identifier column (not a key column) and correctly lists row-wise statuses and mismatches.",
+        "Export values for each compared column are included for Sheet A, Sheet B, and Sheet C per result row."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/reconcile/exportXlsx.ts",
+          "operation": "modify",
+          "description": "Update exported workbook structure so the Results sheet uses a row identifier column (e.g., Row #) instead of Key, includes per-sheet presence flags, lists mismatched columns, and outputs per-compared-column values for Sheet A/B/C consistently with the row-wise engine and UI."
+        },
+        {
+          "path": "frontend/src/features/reconcile/types.ts",
+          "operation": "modify",
+          "description": "Adjust export-consumed types (result row identifier, presence flags, compared column values) so XLSX export can render row-wise reconciliation output consistently."
         }
       ]
     }

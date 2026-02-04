@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 23,
-  "summary": "ICP dapp with a Motoko backend and a React/Vite + shadcn/ui frontend implementing an Excel-based reconciliation workflow (upload, preview, configure, reconcile locally, and export results), with Internet Identity authentication plumbing, plus a Dockerized build-template/deployment harness for reproducible ICP CLI builds and exports.",
+  "projectStateVersion": 43,
+  "summary": "ICP dapp with a Motoko backend and a React/Vite + shadcn/ui frontend implementing an Excel-based reconciliation workflow for three uploaded GST-template Excel sheets (Accounts, Computation, Winman), emphasizing row-wise full-column equality checks (including unique invoice number) and exporting results.",
   "existing_features": [
     {
       "id": "IF-1",
@@ -71,10 +71,34 @@
       "version": 1
     },
     {
-      "id": "feature-add-a-new-required-gst-invoice-column-header-named-invoice-number-to-the-shared-template-header-list-so-that-all-three-generated-excel-templates-sheet-a-sheet-b-sheet-c-include-it-in-the-first-row-and-template-validation-requires-it",
-      "title": "Add a new required GST invoice column header named \"INVOICE NUMBER\" to the shared template header list so that all three generated Excel templates (Sheet A, Sheet B, Sheet C) include it in the first row and template validation requires it.",
+      "id": "feature-remove-the-key-based-key-column-key-value-reconciliation-concept-from-the-reconciliation-workflow-and-change-reconciliation-to-compare-each-row-as-a-whole-item-across-all-three-sheets-sheet-a-vs-sheet-b-vs-sheet-c-flagging-a-mismatch-when-any-column-value-differs-for-the-same-row-position",
+      "title": "Remove the key-based (\"key column\" / key-value) reconciliation concept from the reconciliation workflow, and change reconciliation to compare each row as a whole item across all three sheets (Sheet A vs Sheet B vs Sheet C), flagging a mismatch when any column value differs for the same row position.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-reconciliation-configuration-types-and-validation-to-remove-keycolumnsa-keycolumnsb-keycolumnsc-and-any-key-based-configuration-validation-and-instead-define-the-compared-columns-set-as-the-common-headers-across-all-three-sheets-or-the-template-defined-headers-when-available-for-row-wise-comparison",
+      "title": "Update the reconciliation configuration, types, and validation to remove keyColumnsA/keyColumnsB/keyColumnsC and any \"key\"-based configuration/validation, and instead define the compared columns set as the common headers across all three sheets (or the template-defined headers when available) for row-wise comparison.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-ui-to-reflect-row-wise-reconciliation-remove-replace-any-user-facing-text-and-controls-that-describe-matching-by-key-including-key-column-checkbox-sections-and-update-results-presentation-to-use-a-row-identifier-e-g-row-number-index-instead-of-a-key-field-while-still-showing-per-sheet-values-and-mismatched-columns",
+      "title": "Update the UI to reflect row-wise reconciliation: remove/replace any user-facing text and controls that describe \"matching by key\" (including key column checkbox sections), and update results presentation to use a row identifier (e.g., row number/index) instead of a \"Key\" field while still showing per-sheet values and mismatched columns.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-xlsx-export-so-the-exported-results-sheet-reflects-row-wise-reconciliation-row-identifier-instead-of-key-per-sheet-presence-mismatched-columns-and-per-column-values-for-a-b-c-for-the-compared-columns",
+      "title": "Update XLSX export so the exported Results sheet reflects row-wise reconciliation (row identifier instead of key, per-sheet presence, mismatched columns, and per-column values for A/B/C for the compared columns).",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -82,7 +106,7 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add Invoice Number column/field to the Excel template and include it in reconciliation",
+      "summary": "Remove key/value matching concept; reconcile by treating each row as one item and verifying all column values match across all three sheets (with unique invoice number constraint).",
       "reqIds": [],
       "status": "pending"
     }
@@ -92,14 +116,12 @@
     "Frontend uses Tailwind + shadcn/ui component library; reconciliation feature is implemented primarily client-side (local processing) with XLSX import/export utilities.",
     "Authentication uses Internet Identity; frontend creates an authenticated actor for backend interactions.",
     "Build/deploy now includes a Dockerized build-template workspace (icp.yaml + deploy.sh and supporting scripts) to enable reproducible ICP CLI builds/exports alongside the main app source.",
-    "Build-template workspace now includes a full React/Vite + shadcn/ui frontend scaffold (components, Tailwind/PostCSS, Vite config) plus custom ESLint rules (e.g., requiring Internet Identity provider configuration and preventing BigInt usage in query keys) to enforce ICP/II-specific frontend constraints."
+    "Build-template workspace now includes a full React/Vite + shadcn/ui frontend scaffold (components, Tailwind/PostCSS, Vite config) plus custom ESLint rules (e.g., requiring Internet Identity provider configuration and preventing BigInt usage in query keys) to enforce ICP/II-specific frontend constraints.",
+    "Build-template workspace now includes explicit per-canister configuration files (e.g., src/backend/canister.yaml, src/frontend/canister.yaml) and a system IDL (system-idl/aaaaa-aa.did) to support consistent local/deploy/export behavior."
   ],
-  "known_issues": [
-    "User reported being unable to open/download the Excel template and missing/disabled Reconcile button in the UI.",
-    "Build/deploy errored when attempting to add the Invoice Number column to the template (user requested retry)."
-  ],
-  "isFixRequest": true,
-  "projectName": "Add Invoice Number column to GST Excel templates (retry build)",
+  "known_issues": [],
+  "isFixRequest": false,
+  "projectName": "Remove key/value-based reconciliation and compare full rows across three sheets",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

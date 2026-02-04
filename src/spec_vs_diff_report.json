@@ -1,14 +1,40 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T06:56:07.076Z",
-  "summary": "REQ-1 appears implemented by adding \"INVOICE NUMBER\" to the shared GST invoice required headers list used by all three template specs (A/B/C) in templateSpec.ts, which should affect both generated template first-row headers and required-header validation wherever TEMPLATE_SPECS.requiredHeaders is consumed.",
-  "missing_requirements": [],
+  "generatedAt": "2026-02-04T09:51:53.100Z",
+  "summary": "Diff implements a shift to row-index-based reconciliation across three sheets, removes key-column config/types/validation, updates config UI to show auto-derived compare columns, and updates XLSX export to use a row identifier and include A/B/C values. Two acceptance criteria aspects appear incomplete/uncertain from the diff: use of template-defined headers (when available) and clearly reporting cases where more than one sheet is missing the same row index.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "If one or more sheets are missing a row at index i (row count differs), the result clearly reports the row as missing in the relevant sheet(s).",
+      "reason": "The reconciliation engine assigns a single status via an if/else chain (Missing in A else Missing in B else Missing in C). If multiple sheets are missing for the same row index, only one missing status will be shown, which may not \"clearly report\" all missing sheets for that row (even though presentIn* booleans exist).",
+      "evidence": [
+        "frontend/src/features/reconcile/reconcileLocal.ts"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Define compared columns as the common headers across all three sheets (or the template-defined headers when available) for row-wise comparison, and keep this derived list consistent across engine, UI, and export.",
+      "reason": "The diff shows derivation from common headers only; there is no evidence of using template-defined headers as a fallback/override \"when available\" (TEMPLATE_SPECS is imported in the config panel but not used in the shown code).",
+      "evidence": [
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/ReconcileConfigPanel.tsx"
+      ]
+    }
+  ],
   "hallucinated_features": [],
   "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/features/reconcile/templateSpec.ts",
+    "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
+    "frontend/src/features/reconcile/ResultsTab.tsx",
+    "frontend/src/features/reconcile/UploadTab.tsx",
+    "frontend/src/features/reconcile/configValidation.ts",
+    "frontend/src/features/reconcile/exportXlsx.ts",
+    "frontend/src/features/reconcile/invoiceValidation.ts",
+    "frontend/src/features/reconcile/normalize.ts",
+    "frontend/src/features/reconcile/reconcileLocal.ts",
+    "frontend/src/features/reconcile/types.ts",
     "project_state.json"
   ]
 }

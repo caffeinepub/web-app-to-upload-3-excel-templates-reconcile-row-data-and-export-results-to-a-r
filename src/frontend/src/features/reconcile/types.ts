@@ -6,16 +6,13 @@ export interface ParsedSheet {
 }
 
 export interface ReconcileConfig {
-  keyColumnsA: string[];
-  keyColumnsB: string[];
-  keyColumnsC: string[];
   compareColumns: string[];
 }
 
-export type ReconcileStatus = 'Matched' | 'Mismatch' | 'Missing in A' | 'Missing in B' | 'Missing in C' | 'Duplicate';
+export type ReconcileStatus = 'Matched' | 'Mismatch' | 'Missing in A' | 'Missing in B' | 'Missing in C';
 
 export interface ReconcileResultRow {
-  key: string;
+  rowIndex: number;
   status: ReconcileStatus;
   presentInA: boolean;
   presentInB: boolean;
@@ -24,8 +21,6 @@ export interface ReconcileResultRow {
   valuesB: Record<string, string | null>;
   valuesC: Record<string, string | null>;
   mismatches: string[];
-  occurrenceIndex?: number;
-  totalOccurrences?: number;
 }
 
 export interface ReconciliationResults {
@@ -37,7 +32,6 @@ export interface ReconciliationResults {
     missingInA: number;
     missingInB: number;
     missingInC: number;
-    duplicate: number;
   };
   config: ReconcileConfig;
   sheets: {

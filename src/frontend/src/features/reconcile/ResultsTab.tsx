@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ReconciliationResults, ReconcileStatus, ReconcileResultRow } from './types';
+import { TEMPLATE_SPECS } from './templateSpec';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ interface ResultsTabProps {
 
 export default function ResultsTab({ results }: ResultsTabProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchKey, setSearchKey] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedRow, setSelectedRow] = useState<ReconcileResultRow | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -29,16 +30,28 @@ export default function ResultsTab({ results }: ResultsTabProps) {
       filtered = filtered.filter(row => row.status === statusFilter);
     }
 
-    // Apply search
-    if (searchKey.trim()) {
-      const search = searchKey.toLowerCase();
-      filtered = filtered.filter(row =>
-        row.key.toLowerCase().includes(search)
-      );
+    // Apply search - search by row number or any cell value
+    if (searchQuery.trim()) {
+      const search = searchQuery.toLowerCase();
+      filtered = filtered.filter(row => {
+        // Search in row index
+        if (row.rowIndex.toString().includes(search)) {
+          return true;
+        }
+        // Search in any value from A, B, or C
+        const allValues = [
+          ...Object.values(row.valuesA),
+          ...Object.values(row.valuesB),
+          ...Object.values(row.valuesC)
+        ];
+        return allValues.some(val => 
+          val && val.toLowerCase().includes(search)
+        );
+      });
     }
 
     return filtered;
-  }, [results.rows, statusFilter, searchKey]);
+  }, [results.rows, statusFilter, searchQuery]);
 
   const getStatusBadge = (status: ReconcileStatus) => {
     const variants: Record<ReconcileStatus, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; className?: string }> = {
@@ -46,8 +59,7 @@ export default function ResultsTab({ results }: ResultsTabProps) {
       'Mismatch': { variant: 'destructive' },
       'Missing in A': { variant: 'secondary' },
       'Missing in B': { variant: 'secondary' },
-      'Missing in C': { variant: 'secondary' },
-      'Duplicate': { variant: 'outline', className: 'border-amber-600 text-amber-600' }
+      'Missing in C': { variant: 'secondary' }
     };
 
     const config = variants[status];
@@ -72,10 +84,10 @@ export default function ResultsTab({ results }: ResultsTabProps) {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total</CardDescription>
+            <CardDescription>Total Rows</CardDescription>
             <CardTitle className="text-3xl">{results.summary.total}</CardTitle>
           </CardHeader>
         </Card>
@@ -109,12 +121,6 @@ export default function ResultsTab({ results }: ResultsTabProps) {
             <CardTitle className="text-3xl">{results.summary.missingInC}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Duplicate</CardDescription>
-            <CardTitle className="text-3xl text-amber-600">{results.summary.duplicate}</CardTitle>
-          </CardHeader>
-        </Card>
       </div>
 
       {/* Filters and Export */}
@@ -138,7 +144,6 @@ export default function ResultsTab({ results }: ResultsTabProps) {
                   <SelectItem value="Missing in A">Missing in A</SelectItem>
                   <SelectItem value="Missing in B">Missing in B</SelectItem>
                   <SelectItem value="Missing in C">Missing in C</SelectItem>
-                  <SelectItem value="Duplicate">Duplicate</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -147,9 +152,9 @@ export default function ResultsTab({ results }: ResultsTabProps) {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by key..."
-                value={searchKey}
-                onChange={(e) => setSearchKey(e.target.value)}
+                placeholder="Search by row # or value..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -175,8 +180,7 @@ export default function ResultsTab({ results }: ResultsTabProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Key</TableHead>
-                  <TableHead>Occurrence</TableHead>
+                  <TableHead>Row #</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">In A</TableHead>
                   <TableHead className="text-center">In B</TableHead>
@@ -188,19 +192,14 @@ export default function ResultsTab({ results }: ResultsTabProps) {
               <TableBody>
                 {filteredRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       No results found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredRows.map((row, index) => (
                     <TableRow key={index}>
-                      <TableCell className="font-mono text-sm">{row.key}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {row.occurrenceIndex && row.totalOccurrences 
-                          ? `${row.occurrenceIndex} of ${row.totalOccurrences}`
-                          : '—'}
-                      </TableCell>
+                      <TableCell className="font-mono text-sm">{row.rowIndex}</TableCell>
                       <TableCell>{getStatusBadge(row.status)}</TableCell>
                       <TableCell className="text-center">
                         {row.presentInA ? '✓' : '✗'}
@@ -248,12 +247,7 @@ export default function ResultsTab({ results }: ResultsTabProps) {
           <DialogHeader>
             <DialogTitle>Row Details</DialogTitle>
             <DialogDescription>
-              Key: <span className="font-mono">{selectedRow?.key}</span>
-              {selectedRow?.occurrenceIndex && selectedRow?.totalOccurrences && (
-                <span className="ml-2">
-                  (Occurrence {selectedRow.occurrenceIndex} of {selectedRow.totalOccurrences})
-                </span>
-              )}
+              Row #: <span className="font-mono">{selectedRow?.rowIndex}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -264,20 +258,26 @@ export default function ResultsTab({ results }: ResultsTabProps) {
                 {getStatusBadge(selectedRow.status)}
               </div>
 
-              {/* Compare Column Values */}
+              {/* Compare Column Values with proper sheet labels */}
               <div className="space-y-2">
-                <h3 className="font-semibold">Compared Values</h3>
+                <h3 className="font-semibold">
+                  {selectedRow.status === 'Mismatch' ? 'Mismatched Values' : 'Compared Values'}
+                </h3>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Column</TableHead>
-                      <TableHead>Sheet A</TableHead>
-                      <TableHead>Sheet B</TableHead>
-                      <TableHead>Sheet C</TableHead>
+                      <TableHead>{TEMPLATE_SPECS.A.displayName}</TableHead>
+                      <TableHead>{TEMPLATE_SPECS.B.displayName}</TableHead>
+                      <TableHead>{TEMPLATE_SPECS.C.displayName}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {results.config.compareColumns.map(col => {
+                    {/* Show only mismatched columns for Mismatch status, all columns otherwise */}
+                    {(selectedRow.status === 'Mismatch' && selectedRow.mismatches.length > 0
+                      ? selectedRow.mismatches
+                      : results.config.compareColumns
+                    ).map(col => {
                       const vA = selectedRow.valuesA[col];
                       const vB = selectedRow.valuesB[col];
                       const vC = selectedRow.valuesC[col];
@@ -285,7 +285,14 @@ export default function ResultsTab({ results }: ResultsTabProps) {
 
                       return (
                         <TableRow key={col} className={isMismatch ? 'bg-destructive/10' : ''}>
-                          <TableCell className="font-medium">{col}</TableCell>
+                          <TableCell className="font-medium">
+                            {col}
+                            {isMismatch && (
+                              <Badge variant="destructive" className="ml-2 text-xs">
+                                Mismatch
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell className={!selectedRow.presentInA ? 'text-muted-foreground italic' : ''}>
                             {selectedRow.presentInA ? (vA || <span className="text-muted-foreground italic">empty</span>) : 'N/A'}
                           </TableCell>

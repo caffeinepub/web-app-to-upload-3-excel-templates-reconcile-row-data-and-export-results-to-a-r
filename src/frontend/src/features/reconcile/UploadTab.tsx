@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,11 +56,19 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
   const [reconcileError, setReconcileError] = useState<string | null>(null);
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState<TemplateKey | null>(null);
 
-  // Configuration state lifted from ReconcileConfigPanel
-  const [keyColumnsA, setKeyColumnsA] = useState<string[]>([]);
-  const [keyColumnsB, setKeyColumnsB] = useState<string[]>([]);
-  const [keyColumnsC, setKeyColumnsC] = useState<string[]>([]);
+  // Configuration state - derive compare columns from common headers
   const [compareColumns, setCompareColumns] = useState<string[]>([]);
+
+  // Auto-configure when all files are loaded - derive compare columns from common headers
+  useEffect(() => {
+    if (fileA.parsed && fileB.parsed && fileC.parsed) {
+      // Derive all common columns for comparison
+      const commonHeaders = fileA.parsed.headers.filter(h =>
+        fileB.parsed!.headers.includes(h) && fileC.parsed!.headers.includes(h)
+      );
+      setCompareColumns(commonHeaders);
+    }
+  }, [fileA.parsed, fileB.parsed, fileC.parsed]);
 
   const handleFileUpload = async (
     file: File,
@@ -146,22 +154,24 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
   const handleReconcile = async () => {
     setReconcileError(null);
     
+    if (!fileA.parsed || !fileB.parsed || !fileC.parsed) {
+      setReconcileError('All three files must be uploaded and validated before reconciliation');
+      return;
+    }
+
+    // Derive compare columns at runtime - all common columns
+    const commonHeaders = fileA.parsed.headers.filter(h =>
+      fileB.parsed!.headers.includes(h) && fileC.parsed!.headers.includes(h)
+    );
+
     const config: ReconcileConfig = {
-      keyColumnsA,
-      keyColumnsB,
-      keyColumnsC,
-      compareColumns
+      compareColumns: commonHeaders
     };
 
     // Validate config
     const configError = validateReconcileConfig(config);
     if (configError) {
       setReconcileError(configError.message);
-      return;
-    }
-
-    if (!fileA.parsed || !fileB.parsed || !fileC.parsed) {
-      setReconcileError('All three files must be uploaded and validated before reconciliation');
       return;
     }
 
@@ -179,7 +189,7 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
   };
 
   const allFilesValid = fileA.parsed && fileB.parsed && fileC.parsed;
-  const configComplete = keyColumnsA.length > 0 && keyColumnsB.length > 0 && keyColumnsC.length > 0 && compareColumns.length > 0;
+  const configComplete = compareColumns.length > 0;
   const canReconcile = allFilesValid && configComplete;
 
   // Build prerequisite message
@@ -188,10 +198,7 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
     if (!fileA.parsed) missing.push('Sheet A (Accounts)');
     if (!fileB.parsed) missing.push('Sheet B (Computation)');
     if (!fileC.parsed) missing.push('Sheet C (Winman Data)');
-    if (allFilesValid && keyColumnsA.length === 0) missing.push('Sheet A key columns');
-    if (allFilesValid && keyColumnsB.length === 0) missing.push('Sheet B key columns');
-    if (allFilesValid && keyColumnsC.length === 0) missing.push('Sheet C key columns');
-    if (allFilesValid && compareColumns.length === 0) missing.push('compare columns');
+    if (allFilesValid && compareColumns.length === 0) missing.push('common columns for comparison');
     
     if (missing.length === 0) return '';
     return `Missing: ${missing.join(', ')}`;
@@ -236,7 +243,9 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
       <Card>
         <CardHeader>
           <CardTitle>Step 2: Upload Excel Files</CardTitle>
-          <CardDescription>Upload three Excel files matching the template structure</CardDescription>
+          <CardDescription>
+            Upload three Excel files matching the template structure. Rows will be compared by position (row index) across all three sheets.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Sheet A (Accounts) */}
@@ -328,14 +337,7 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
           sheetA={fileA.parsed!}
           sheetB={fileB.parsed!}
           sheetC={fileC.parsed!}
-          keyColumnsA={keyColumnsA}
-          keyColumnsB={keyColumnsB}
-          keyColumnsC={keyColumnsC}
           compareColumns={compareColumns}
-          onKeyColumnsAChange={setKeyColumnsA}
-          onKeyColumnsBChange={setKeyColumnsB}
-          onKeyColumnsCChange={setKeyColumnsC}
-          onCompareColumnsChange={setCompareColumns}
         />
       )}
 
@@ -379,7 +381,7 @@ export default function UploadTab({ onReconciliationComplete }: UploadTabProps) 
       {reconcileError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{reconcileError}</AlertDescription>
+          <AlertDescription className="whitespace-pre-line">{reconcileError}</AlertDescription>
         </Alert>
       )}
     </div>

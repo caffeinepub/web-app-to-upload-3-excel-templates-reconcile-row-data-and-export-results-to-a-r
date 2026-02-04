@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 import { ParsedSheet } from './types';
 import { TEMPLATE_SPECS } from './templateSpec';
 
@@ -8,168 +10,69 @@ interface ReconcileConfigPanelProps {
   sheetA: ParsedSheet;
   sheetB: ParsedSheet;
   sheetC: ParsedSheet;
-  keyColumnsA: string[];
-  keyColumnsB: string[];
-  keyColumnsC: string[];
   compareColumns: string[];
-  onKeyColumnsAChange: (columns: string[]) => void;
-  onKeyColumnsBChange: (columns: string[]) => void;
-  onKeyColumnsCChange: (columns: string[]) => void;
-  onCompareColumnsChange: (columns: string[]) => void;
 }
 
 export default function ReconcileConfigPanel({
   sheetA,
   sheetB,
   sheetC,
-  keyColumnsA,
-  keyColumnsB,
-  keyColumnsC,
-  compareColumns,
-  onKeyColumnsAChange,
-  onKeyColumnsBChange,
-  onKeyColumnsCChange,
-  onCompareColumnsChange
+  compareColumns
 }: ReconcileConfigPanelProps) {
   // Get common headers across all sheets for compare columns
   const commonHeaders = sheetA.headers.filter(h =>
     sheetB.headers.includes(h) && sheetC.headers.includes(h)
   );
 
-  const handleToggleKeyColumn = (
-    column: string,
-    sheet: 'A' | 'B' | 'C'
-  ) => {
-    const handlers = {
-      A: onKeyColumnsAChange,
-      B: onKeyColumnsBChange,
-      C: onKeyColumnsCChange
-    };
-    const getters = {
-      A: keyColumnsA,
-      B: keyColumnsB,
-      C: keyColumnsC
-    };
-
-    const handler = handlers[sheet];
-    const current = getters[sheet];
-
-    if (current.includes(column)) {
-      handler(current.filter(c => c !== column));
-    } else {
-      handler([...current, column]);
-    }
-  };
-
-  const handleToggleCompareColumn = (column: string) => {
-    if (compareColumns.includes(column)) {
-      onCompareColumnsChange(compareColumns.filter(c => c !== column));
-    } else {
-      onCompareColumnsChange([...compareColumns, column]);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 3: Configure Reconciliation</CardTitle>
+        <CardTitle>Step 3: Reconciliation Configuration</CardTitle>
         <CardDescription>
-          Select key columns for matching rows and columns to compare for differences
+          Rows will be compared by position (row index) across all three sheets. All common columns will be checked for equality.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Key Columns */}
-        <div className="space-y-4">
-          <Label className="text-base font-semibold">Key Columns (for matching rows)</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Sheet A (Accounts) Keys */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">{TEMPLATE_SPECS.A.displayName} Keys</Label>
-              <div className="space-y-2 border rounded-md p-3 max-h-48 overflow-y-auto">
-                {sheetA.headers.map(header => (
-                  <div key={header} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`keyA-${header}`}
-                      checked={keyColumnsA.includes(header)}
-                      onCheckedChange={() => handleToggleKeyColumn(header, 'A')}
-                    />
-                    <label
-                      htmlFor={`keyA-${header}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {header}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* Info Alert */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Matching Rule:</strong> Rows are matched by their position (row 1 in Sheet A is compared with row 1 in Sheet B and Sheet C).
+            <br />
+            <strong>Comparison Rule:</strong> All common columns are automatically compared across Sheet A, B, and C. Any differences will be flagged as mismatches.
+          </AlertDescription>
+        </Alert>
 
-            {/* Sheet B (Computation) Keys */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">{TEMPLATE_SPECS.B.displayName} Keys</Label>
-              <div className="space-y-2 border rounded-md p-3 max-h-48 overflow-y-auto">
-                {sheetB.headers.map(header => (
-                  <div key={header} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`keyB-${header}`}
-                      checked={keyColumnsB.includes(header)}
-                      onCheckedChange={() => handleToggleKeyColumn(header, 'B')}
-                    />
-                    <label
-                      htmlFor={`keyB-${header}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {header}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Sheet C (Winman Data) Keys */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">{TEMPLATE_SPECS.C.displayName} Keys</Label>
-              <div className="space-y-2 border rounded-md p-3 max-h-48 overflow-y-auto">
-                {sheetC.headers.map(header => (
-                  <div key={header} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`keyC-${header}`}
-                      checked={keyColumnsC.includes(header)}
-                      onCheckedChange={() => handleToggleKeyColumn(header, 'C')}
-                    />
-                    <label
-                      htmlFor={`keyC-${header}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {header}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compare Columns */}
+        {/* Compare Columns - Read-only display */}
         <div className="space-y-2">
-          <Label className="text-base font-semibold">Compare Columns (for mismatch detection)</Label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border rounded-md p-3">
+          <Label className="text-base font-semibold">Columns Being Compared</Label>
+          <CardDescription className="text-sm">
+            All common columns across the three sheets are automatically compared for row-wise equality.
+          </CardDescription>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border rounded-md p-3 bg-muted/20">
             {commonHeaders.map(header => (
               <div key={header} className="flex items-center space-x-2">
                 <Checkbox
                   id={`compare-${header}`}
-                  checked={compareColumns.includes(header)}
-                  onCheckedChange={() => handleToggleCompareColumn(header)}
+                  checked={true}
+                  disabled={true}
                 />
                 <label
                   htmlFor={`compare-${header}`}
-                  className="text-sm cursor-pointer"
+                  className="text-sm cursor-not-allowed font-medium"
                 >
                   {header}
                 </label>
               </div>
             ))}
           </div>
+          {commonHeaders.length === 0 && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                No common columns found across all three sheets. Please ensure your files have matching column headers.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </CardContent>
     </Card>

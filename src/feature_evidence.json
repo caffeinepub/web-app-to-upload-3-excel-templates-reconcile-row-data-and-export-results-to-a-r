@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-required-gst-invoice-column-header-named-invoice-number-to-the-shared-template-header-list-so-that-all-three-generated-excel-templates-sheet-a-sheet-b-sheet-c-include-it-in-the-first-row-and-template-validation-requires-it",
-      "featureTitle": "Add a new required GST invoice column header named \"INVOICE NUMBER\" to the shared template header list so that all three generated Excel templates (Sheet A, Sheet B, Sheet C) include it in the first row and template validation requires it.",
+      "featureId": "feature-remove-the-key-based-key-column-key-value-reconciliation-concept-from-the-reconciliation-workflow-and-change-reconciliation-to-compare-each-row-as-a-whole-item-across-all-three-sheets-sheet-a-vs-sheet-b-vs-sheet-c-flagging-a-mismatch-when-any-column-value-differs-for-the-same-row-position",
+      "featureTitle": "Remove the key-based (\"key column\" / key-value) reconciliation concept from the reconciliation workflow, and change reconciliation to compare each row as a whole item across all three sheets (Sheet A vs Sheet B vs Sheet C), flagging a mismatch when any column value differs for the same row position.",
       "files": [
-        "frontend/src/features/reconcile/templateSpec.ts"
+        "frontend/src/features/reconcile/normalize.ts",
+        "frontend/src/features/reconcile/reconcileLocal.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,6 +17,65 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-reconciliation-configuration-types-and-validation-to-remove-keycolumnsa-keycolumnsb-keycolumnsc-and-any-key-based-configuration-validation-and-instead-define-the-compared-columns-set-as-the-common-headers-across-all-three-sheets-or-the-template-defined-headers-when-available-for-row-wise-comparison",
+      "featureTitle": "Update the reconciliation configuration, types, and validation to remove keyColumnsA/keyColumnsB/keyColumnsC and any \"key\"-based configuration/validation, and instead define the compared columns set as the common headers across all three sheets (or the template-defined headers when available) for row-wise comparison.",
+      "files": [
+        "frontend/src/features/reconcile/UploadTab.tsx",
+        "frontend/src/features/reconcile/configValidation.ts",
+        "frontend/src/features/reconcile/types.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-ui-to-reflect-row-wise-reconciliation-remove-replace-any-user-facing-text-and-controls-that-describe-matching-by-key-including-key-column-checkbox-sections-and-update-results-presentation-to-use-a-row-identifier-e-g-row-number-index-instead-of-a-key-field-while-still-showing-per-sheet-values-and-mismatched-columns",
+      "featureTitle": "Update the UI to reflect row-wise reconciliation: remove/replace any user-facing text and controls that describe \"matching by key\" (including key column checkbox sections), and update results presentation to use a row identifier (e.g., row number/index) instead of a \"Key\" field while still showing per-sheet values and mismatched columns.",
+      "files": [
+        "frontend/src/features/reconcile/ReconcileConfigPanel.tsx",
+        "frontend/src/features/reconcile/ResultsTab.tsx",
+        "frontend/src/features/reconcile/UploadTab.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-xlsx-export-so-the-exported-results-sheet-reflects-row-wise-reconciliation-row-identifier-instead-of-key-per-sheet-presence-mismatched-columns-and-per-column-values-for-a-b-c-for-the-compared-columns",
+      "featureTitle": "Update XLSX export so the exported Results sheet reflects row-wise reconciliation (row identifier instead of key, per-sheet presence, mismatched columns, and per-column values for A/B/C for the compared columns).",
+      "files": [
+        "frontend/src/features/reconcile/exportXlsx.ts",
+        "frontend/src/features/reconcile/types.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

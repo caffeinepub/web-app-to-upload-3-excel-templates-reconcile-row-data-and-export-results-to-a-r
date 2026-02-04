@@ -14,19 +14,17 @@ export async function exportToXlsx(results: ReconciliationResults) {
 
   // Add summary section
   data.push(['Reconciliation Summary']);
-  data.push(['Total Records', results.summary.total]);
+  data.push(['Total Rows', results.summary.total]);
   data.push(['Matched', results.summary.matched]);
   data.push(['Mismatch', results.summary.mismatch]);
   data.push(['Missing in A', results.summary.missingInA]);
   data.push(['Missing in B', results.summary.missingInB]);
   data.push(['Missing in C', results.summary.missingInC]);
-  data.push(['Duplicate Keys', results.summary.duplicate]);
   data.push([]); // Empty row
 
   // Add results table header
   const headerRow = [
-    'Key',
-    'Occurrence',
+    'Row #',
     'Status',
     'Present in A',
     'Present in B',
@@ -43,13 +41,8 @@ export async function exportToXlsx(results: ReconciliationResults) {
 
   // Add results data
   results.rows.forEach(row => {
-    const occurrenceText = row.occurrenceIndex && row.totalOccurrences 
-      ? `${row.occurrenceIndex} of ${row.totalOccurrences}`
-      : '';
-    
     const dataRow: any[] = [
-      row.key,
-      occurrenceText,
+      row.rowIndex,
       row.status,
       row.presentInA ? 'Yes' : 'No',
       row.presentInB ? 'Yes' : 'No',

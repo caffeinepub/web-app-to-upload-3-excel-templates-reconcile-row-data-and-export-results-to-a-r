@@ -6,31 +6,11 @@ export interface ConfigValidationError {
 }
 
 export function validateReconcileConfig(config: ReconcileConfig): ConfigValidationError | null {
-  if (config.keyColumnsA.length === 0) {
-    return {
-      field: 'keyColumnsA',
-      message: 'Please select at least one key column for Sheet A'
-    };
-  }
-  
-  if (config.keyColumnsB.length === 0) {
-    return {
-      field: 'keyColumnsB',
-      message: 'Please select at least one key column for Sheet B'
-    };
-  }
-  
-  if (config.keyColumnsC.length === 0) {
-    return {
-      field: 'keyColumnsC',
-      message: 'Please select at least one key column for Sheet C'
-    };
-  }
-  
+  // Ensure at least one compare column exists
   if (config.compareColumns.length === 0) {
     return {
       field: 'compareColumns',
-      message: 'Please select at least one column to compare'
+      message: 'At least one column must be available for comparison'
     };
   }
   
